@@ -1,0 +1,17 @@
+node_modules
+.nuxt
+.output
+.git
+.github
+.vscode
+dist
+*.log
+.env
+.env.*
+!.env.example
+README.md
+*.md
+.DS_Store
+coverage
+.eslintcache
+pnpm-debug.log*

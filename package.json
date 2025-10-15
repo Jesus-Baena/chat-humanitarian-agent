@@ -1,0 +1,51 @@
+{
+  "name": "nuxt-ui-pro-template-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "@iconify-json/logos": "^1.2.9",
+    "@iconify-json/lucide": "^1.2.62",
+    "@iconify-json/simple-icons": "^1.2.47",
+    "@nuxt/ui": "^3.3.3",
+    "@nuxt/ui-pro": "^3.3.2",
+    "@nuxtjs/mdc": "^0.17.2",
+    "@nuxtjs/supabase": "^1.4.0",
+    "@supabase/ssr": "^0.7.0",
+    "date-fns": "^4.1.0",
+    "nuxt": "^4.0.3",
+    "shiki-stream": "^0.1.2"
+  },
+  "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.2",
+    "@nuxt/eslint": "^1.8.0",
+    "@types/node": "^24.2.1",
+    "eslint": "^9.33.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "vue-tsc": "^3.0.5"
+  },
+  "resolutions": {
+    "unimport": "4.1.1"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "unrs-resolver",
+      "vue-demi"
+    ],
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "packageManager": "pnpm@10.13.1"
+}

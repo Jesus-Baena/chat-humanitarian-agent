@@ -1,0 +1,46 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Deployment and infrastructure documentation
+# These files contain sensitive information about deployment setup
+*DEPLOYMENT*.md
+*DEPLOY*.md
+*SETUP*.md
+*SECRETS*.md
+*RUNNER*.md
+*SWARM*.md
+*DOCKER*.md
+*REGISTRY*.md
+*SECURITY*.md
+*PORTAINER*.md
+deploy*.sh
+manual-deploy.sh
+show-github-secrets.sh
+quick-fix*.sh
+chat-service-for-web-stack.yml
+docker-compose.yml
+
+# VSC
+.history
