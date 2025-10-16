@@ -17,8 +17,8 @@ echo "✅ Running on Docker Swarm manager"
 # Update the chat service with correct environment variables
 echo "🔄 Updating chat service with fixed Flowise URL..."
 docker service update \
-  --env-add NUXT_PUBLIC_FLOWISE_URL=https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3 \
-  --env-add NUXT_PUBLIC_FLOWISE_API_KEY=***REMOVED*** \
+  --env-add NUXT_PUBLIC_FLOWISE_URL="${NUXT_PUBLIC_FLOWISE_URL}" \
+  --env-add NUXT_PUBLIC_FLOWISE_API_KEY="${NUXT_PUBLIC_FLOWISE_API_KEY}" \
   --env-add ROLLOUT_VERSION=$(date +%s) \
   --force \
   web_chat
