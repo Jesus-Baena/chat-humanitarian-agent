@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manual Chat Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .message { padding: 10px; margin: 10px 0; border-radius: 8px; }
+    .user { background: #e3f2fd; }
+    .assistant { background: #f3f3f3; }
+    textarea { width: 100%; height: 80px; }
+    button { padding: 10px 20px; margin: 5px; }
+    pre { background: #f5f5f5; padding: 10px; overflow-x: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Manual Chat Test</h1>
+  
+  <div>
+    <h2>Configuration</h2>
+    <div>
+      <label>Chat ID: <input type="text" id="chatId" value="test-chat-123" style="width: 300px;"></label>
+    </div>
+    <div>
+      <label>Flowise URL: <input type="text" id="flowiseUrl" value="https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3" style="width: 500px;"></label>
+    </div>
+    <div>
+      <label>Flowise API Key: <input type="text" id="flowiseKey" value="FO5JgBFwXMPQDE_XrgDn8FSYpGbgtyeZ2h7YlJd-Skk" style="width: 400px;"></label>
+    </div>
+  </div>
+
+  <div>
+    <h2>Send Message</h2>
+    <textarea id="messageInput" placeholder="Type your message here...">Hello, are you working?</textarea>
+    <br>
+    <button onclick="sendMessage()">Send Message</button>
+    <button onclick="clearMessages()">Clear</button>
+  </div>
+
+  <div>
+    <h2>Messages</h2>
+    <div id="messages"></div>
+  </div>
+
+  <div>
+    <h2>Debug Log</h2>
+    <pre id="debugLog"></pre>
+  </div>
+
+  <script>
+    const messages = [];
+    
+    function log(msg) {
+      const debugLog = document.getElementById('debugLog');
+      debugLog.textContent += new Date().toISOString() + ' - ' + msg + '\n';
+      console.log(msg);
+    }
+    
+    function addMessage(role, content) {
+      messages.push({ role, content });
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'message ' + role;
+      div.innerHTML = `<strong>${role}:</strong><br>${content}`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+    
+    function clearMessages() {
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('debugLog').textContent = '';
+      messages.length = 0;
+    }
+    
+    async function persistMessage(chatId, role, content) {
+      log(`Persisting ${role} message...`);
+      try {
+        const response = await fetch(`/api/chats/${encodeURIComponent(chatId)}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ role, content, titleHint: role === 'user' ? content : undefined })
+        });
+        
+        log(`Persist response status: ${response.status}`);
+        
+        if (!response.ok) {
+          const text = await response.text();
+          log(`Persist error: ${text}`);
+          return null;
+        }
+        
+        const data = await response.json();
+        log(`Persist success: ${JSON.stringify(data)}`);
+        return data;
+      } catch (error) {
+        log(`Persist exception: ${error.message}`);
+        return null;
+      }
+    }
+    
+    async function getFlowiseCompletion(messages, flowiseUrl, apiKey) {
+      log('Getting Flowise completion...');
+      
+      const question = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+      log(`Question: ${question.substring(0, 100)}...`);
+      
+      try {
+        const response = await fetch(flowiseUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream, application/json, */*',
+            ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {})
+          },
+          body: JSON.stringify({ question, streaming: false })
+        });
+        
+        log(`Flowise response status: ${response.status}`);
+        
+        if (!response.ok) {
+          const text = await response.text();
+          log(`Flowise error: ${text}`);
+          throw new Error(`Flowise error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        log(`Flowise response: ${JSON.stringify(data).substring(0, 200)}...`);
+        
+        // Extract text from response
+        let text = data.text || data.output || data.response || data.result;
+        if (!text && data.data && data.data.text) {
+          text = data.data.text;
+        }
+        if (!text) {
+          text = JSON.stringify(data);
+        }
+        
+        return text;
+      } catch (error) {
+        log(`Flowise exception: ${error.message}`);
+        throw error;
+      }
+    }
+    
+    async function sendMessage() {
+      const chatId = document.getElementById('chatId').value;
+      const flowiseUrl = document.getElementById('flowiseUrl').value;
+      const apiKey = document.getElementById('flowiseKey').value;
+      const content = document.getElementById('messageInput').value.trim();
+      
+      if (!content) {
+        alert('Please enter a message');
+        return;
+      }
+      
+      log('=== SENDING MESSAGE ===');
+      log(`Chat ID: ${chatId}`);
+      log(`Message: ${content}`);
+      
+      // Add user message to UI
+      addMessage('user', content);
+      
+      // Persist user message
+      await persistMessage(chatId, 'user', content);
+      
+      // Get AI completion
+      try {
+        const assistantText = await getFlowiseCompletion(
+          [{ role: 'user', content }],
+          flowiseUrl,
+          apiKey
+        );
+        
+        // Add assistant message to UI
+        addMessage('assistant', assistantText);
+        
+        // Persist assistant message
+        await persistMessage(chatId, 'assistant', assistantText);
+        
+        log('=== SUCCESS ===');
+      } catch (error) {
+        log(`=== ERROR: ${error.message} ===`);
+        addMessage('assistant', `Error: ${error.message}`);
+      }
+      
+      // Clear input
+      document.getElementById('messageInput').value = '';
+    }
+  </script>
+</body>
+</html>
