@@ -13,8 +13,13 @@ docs/
 
 ## 📖 Guides
 
-- **[local-testing.md](guides/local-testing.md)** - Guide for running and testing the application locally
-- **[future-improvements.md](guides/future-improvements.md)** - Optimization plans and future feature roadmap
+- **[local-testing.md](guides/local-testing.md)** - Run and test the app locally
+- **[debugging.md](guides/debugging.md)** - Step-by-step client/server debugging flow
+- **[mcp-setup.md](guides/mcp-setup.md)** - Configure Portainer and Supabase MCP for Copilot
+- **[deploy-supabase-secrets.md](guides/deploy-supabase-secrets.md)** - Manage Supabase secrets with Docker Swarm
+- **[deployment-status.md](guides/deployment-status.md)** - High-level deployment status tracker
+- **[deployment-verification.md](guides/deployment-verification.md)** - Post-deploy verification checklist
+- **[future-improvements.md](guides/future-improvements.md)** - Optimization plans and future roadmap
 
 ## 📚 Reference Documentation
 
