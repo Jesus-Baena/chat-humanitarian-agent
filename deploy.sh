@@ -1,4 +1,4 @@
-#!/bin/bash
+2#!/bin/bash
 
 # 🚀 Production Deployment Script for chat-humanitarian-agent
 # This script deploys the latest Docker image with all required environment variables
