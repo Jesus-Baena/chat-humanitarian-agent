@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  chat:
+    image: ghcr.io/jesus-baena/chat-humanitarian-agent:latest
+    
+    environment:
+      # Core settings
+      - NODE_ENV=production
+      - PORT=3000
+      - NITRO_HOST=0.0.0.0
+      - NITRO_PORT=3000
+      - NITRO_TRUST_PROXY=true
+      - DEBUG_ENTRYPOINT=false
+      - DEPLOYMENT_VERSION=latest
+      
+      # Public URLs
+      - NUXT_PUBLIC_SITE_URL=https://chat.baena.ai
+      - NUXT_PUBLIC_AUTH_BASE=https://baena.ai
+      - NUXT_PUBLIC_LOGOUT_PATH=/logout
+      
+      # CRITICAL: Flowise Configuration (DO NOT REMOVE)
+      - NUXT_PUBLIC_FLOWISE_URL=https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3
+      - NUXT_PUBLIC_FLOWISE_API_KEY=FO5JgBFwXMPQDE_XrgDn8FSYpGbgtyeZ2h7YlJd-Skk
+      
+      # Rollout tracking
+      - ROLLOUT_VERSION=${ROLLOUT_VERSION:-1}
+    
+    secrets:
+      - NUXT_PUBLIC_SUPABASE_URL
+      - SUPABASE_PUBLISHABLE_KEY
+      - SUPABASE_SECRET_KEY
+      - SUPABASE_URL
+      - FLOWISE_API_KEY
+    
+    command:
+      - sh
+      - -c
+      - |
+        export NUXT_PUBLIC_SUPABASE_URL="$$(cat /run/secrets/NUXT_PUBLIC_SUPABASE_URL)"
+        export NUXT_PUBLIC_SUPABASE_ANON_KEY="$$(cat /run/secrets/SUPABASE_PUBLISHABLE_KEY)"
+        export SUPABASE_URL="$$(cat /run/secrets/SUPABASE_URL)"
+        export SUPABASE_ANON_KEY="$$(cat /run/secrets/SUPABASE_PUBLISHABLE_KEY)"
+        export SUPABASE_SERVICE_ROLE_KEY="$$(cat /run/secrets/SUPABASE_SECRET_KEY)"
+        export FLOWISE_API_KEY="$$(cat /run/secrets/FLOWISE_API_KEY)"
+        echo "🔍 Supabase Environment Check:"
+        echo "SUPABASE_URL: $${SUPABASE_URL:0:20}..."
+        echo "SUPABASE_ANON_KEY: $${SUPABASE_ANON_KEY:0:20}..."
+        echo "NUXT_PUBLIC_SUPABASE_URL: $${NUXT_PUBLIC_SUPABASE_URL:0:20}..."
+        echo "NUXT_PUBLIC_SUPABASE_ANON_KEY: $${NUXT_PUBLIC_SUPABASE_ANON_KEY:0:20}..."
+        exec node .output/server/index.mjs
+    
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 5s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        failure_action: pause
+        monitor: 5s
+        order: stop-first
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+      placement:
+        constraints:
+          - node.platform.os == linux
+    
+    networks:
+      - public
+    
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  public:
+    external: true
+
+secrets:
+  NUXT_PUBLIC_SUPABASE_URL:
+    external: true
+  SUPABASE_PUBLISHABLE_KEY:
+    external: true
+  SUPABASE_SECRET_KEY:
+    external: true
+  SUPABASE_URL:
+    external: true
+  FLOWISE_API_KEY:
+    external: true
