@@ -1,8 +1,74 @@
 # Flowise Configuration Troubleshooting Guide
 
-## Current Issue: "No completion backend configured"
+## ⚠️ CRITICAL: "No completion backend configured" Error
 
-The error indicates that your chat app cannot connect to the Flowise AI backend. This prevents the AI from generating responses.
+The error **"No completion backend configured"** means the Flowise URL was not available when the app was **built**. This is the #1 issue in production deployments.
+
+### Root Cause
+
+`NUXT_PUBLIC_*` environment variables are **baked into the client-side JavaScript bundle at BUILD time**, not runtime. This means:
+
+1. ❌ **Setting them in Docker Compose is NOT enough** - Docker only runs the pre-built container
+2. ❌ **Docker Swarm secrets are NOT sufficient** - They only work at container runtime
+3. ✅ **They MUST be set as GitHub Actions Secrets** - So they're available during the CI/CD build
+
+### Quick Fix for Production
+
+**Step 1: Add GitHub Actions Secrets**
+
+Go to your repository → Settings → Secrets and variables → Actions → Repository secrets
+
+Add these secrets:
+- `NUXT_PUBLIC_FLOWISE_URL` = `https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3`
+- `NUXT_PUBLIC_FLOWISE_API_KEY` = `FO5JgBFwXMPQDE_XrgDn8FSYpGbgtyeZ2h7YlJd-Skk`
+- `NUXT_PUBLIC_SUPABASE_URL` = Your Supabase project URL
+- `NUXT_PUBLIC_SUPABASE_KEY` = Your Supabase anon/publishable key
+
+**Step 2: Verify GitHub Actions Workflow**
+
+Your `.github/workflows/build.yml` (or similar) should pass these as build args:
+
+```yaml
+- name: Build Docker image
+  env:
+    NUXT_PUBLIC_FLOWISE_URL: ${{ secrets.NUXT_PUBLIC_FLOWISE_URL }}
+    NUXT_PUBLIC_FLOWISE_API_KEY: ${{ secrets.NUXT_PUBLIC_FLOWISE_API_KEY }}
+    NUXT_PUBLIC_SUPABASE_URL: ${{ secrets.NUXT_PUBLIC_SUPABASE_URL }}
+    NUXT_PUBLIC_SUPABASE_KEY: ${{ secrets.NUXT_PUBLIC_SUPABASE_KEY }}
+  run: |
+    docker build \
+      --build-arg NUXT_PUBLIC_FLOWISE_URL="${NUXT_PUBLIC_FLOWISE_URL}" \
+      --build-arg NUXT_PUBLIC_FLOWISE_API_KEY="${NUXT_PUBLIC_FLOWISE_API_KEY}" \
+      --build-arg NUXT_PUBLIC_SUPABASE_URL="${NUXT_PUBLIC_SUPABASE_URL}" \
+      --build-arg NUXT_PUBLIC_SUPABASE_KEY="${NUXT_PUBLIC_SUPABASE_KEY}" \
+      -t your-image:tag .
+```
+
+**Step 3: Rebuild and Redeploy**
+
+After adding the secrets, trigger a new build (push to main or manually trigger the workflow).
+
+## Understanding the Issue
+
+### Why This Happens
+
+Nuxt uses Vite, which performs **static code analysis** during build:
+
+1. During `pnpm build`, Vite scans code for `import.meta.env.NUXT_PUBLIC_*`
+2. It **replaces** these references with actual values (like string literals)
+3. The final JavaScript bundle contains hardcoded values
+4. At runtime, changing env vars has **no effect** - values are already baked in
+
+### Evidence
+
+If you inspect the built JavaScript (`.output/public/_nuxt/*.js`), you'll see:
+```javascript
+// If NUXT_PUBLIC_FLOWISE_URL was empty at build time:
+const flowiseUrl = undefined  // or ""
+
+// If it was set at build time:
+const flowiseUrl = "https://flowise.baena.site/api/v1/prediction/..."
+```
 
 ## Diagnostic Steps
 
