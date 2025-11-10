@@ -18,9 +18,9 @@ The error **"No completion backend configured"** means the Flowise URL was not a
 
 Go to your repository → Settings → Secrets and variables → Actions → Repository secrets
 
-Add these secrets:
-- `NUXT_PUBLIC_FLOWISE_URL` = `https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3`
-- `NUXT_PUBLIC_FLOWISE_API_KEY` = `FO5JgBFwXMPQDE_XrgDn8FSYpGbgtyeZ2h7YlJd-Skk`
+Add these secrets (get values from your `.env` file or service dashboards):
+- `NUXT_PUBLIC_FLOWISE_URL` = Your Flowise prediction URL
+- `NUXT_PUBLIC_FLOWISE_API_KEY` = Your Flowise API key
 - `NUXT_PUBLIC_SUPABASE_URL` = Your Supabase project URL
 - `NUXT_PUBLIC_SUPABASE_KEY` = Your Supabase anon/publishable key
 

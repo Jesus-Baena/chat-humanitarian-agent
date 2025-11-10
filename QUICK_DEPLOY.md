@@ -19,8 +19,8 @@ Quickly adds missing Flowise environment variables without rebuilding.
 These **MUST** be present in production for the app to work:
 
 ### Client-Side (Required at Runtime)
-- `NUXT_PUBLIC_FLOWISE_URL` - Default: `https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3`
-- `NUXT_PUBLIC_FLOWISE_API_KEY` - Default: `FO5JgBFwXMPQDE_XrgDn8FSYpGbgtyeZ2h7YlJd-Skk`
+- `NUXT_PUBLIC_FLOWISE_URL` - Get from your Flowise instance
+- `NUXT_PUBLIC_FLOWISE_API_KEY` - Get from your Flowise instance
 - `NUXT_PUBLIC_SUPABASE_URL`
 - `NUXT_PUBLIC_SUPABASE_ANON_KEY`
 
