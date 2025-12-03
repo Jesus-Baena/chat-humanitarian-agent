@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limit Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #10b981;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #10b981;
+            border-radius: 4px;
+        }
+        .warning {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .success {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button.danger {
+            background: #ef4444;
+        }
+        button.danger:hover {
+            background: #dc2626;
+        }
+        pre {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .cookie-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status.good {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.bad {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Rate Limit Diagnostic Tool</h1>
+        
+        <div class="section">
+            <h2>Current Status</h2>
+            <p><strong>Domain:</strong> <span id="domain"></span></p>
+            <p><strong>Supabase Cookies Found:</strong> <span id="cookieCount" class="status bad">0</span></p>
+            <p><strong>Time:</strong> <span id="currentTime"></span></p>
+        </div>
+
+        <div class="section">
+            <h2>Step 1: Check Cookies</h2>
+            <button onclick="checkCookies()">🔎 Check Supabase Cookies</button>
+            <div id="cookieList"></div>
+        </div>
+
+        <div class="section warning">
+            <h2>Step 2: Clear Bad Cookies</h2>
+            <p><strong>⚠️ WARNING:</strong> This will sign you out and clear all Supabase authentication cookies.</p>
+            <button class="danger" onclick="clearSupabaseCookies()">🗑️ Clear All Supabase Cookies</button>
+            <div id="clearResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 3: Test Authentication</h2>
+            <button onclick="testAuth()">🧪 Test Supabase Connection</button>
+            <div id="authResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>Manual Fix (Copy & Paste)</h2>
+            <p>If the buttons above don't work, paste this in your browser console (F12):</p>
+            <pre id="manualScript">document.cookie.split(";").forEach(c => {
+  const n = c.split("=")[0].trim();
+  if (n.startsWith("sb-")) {
+    // Clear for current domain
+    document.cookie = n + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    // Clear for parent domain
+    const parts = location.hostname.split(".");
+    if (parts.length >= 2) {
+      const domain = "." + parts.slice(-2).join(".");
+      document.cookie = n + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + domain;
+    }
+  }
+});
+console.log("✅ Supabase cookies cleared!");
+location.reload();</pre>
+            <button onclick="copyScript()">📋 Copy Script</button>
+        </div>
+
+        <div class="section success">
+            <h2>What to Do After Clearing</h2>
+            <ol>
+                <li>Wait <strong>5-10 minutes</strong> for rate limits to reset</li>
+                <li>Go to <a href="https://chat.baena.ai/login" target="_blank">chat.baena.ai/login</a></li>
+                <li>Try logging in with your credentials</li>
+                <li>If still failing, check Supabase logs: 
+                    <a href="https://supabase.com/dashboard/project/qecdwuwkxgwkpopmdewl/logs/auth-logs" target="_blank">View Logs</a>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Update current info
+        document.getElementById('domain').textContent = window.location.hostname;
+        document.getElementById('currentTime').textContent = new Date().toLocaleString();
+
+        function checkCookies() {
+            const cookies = document.cookie.split(';');
+            const sbCookies = [];
+            
+            cookies.forEach(cookie => {
+                const name = cookie.split('=')[0].trim();
+                if (name.startsWith('sb-')) {
+                    sbCookies.push(cookie.trim());
+                }
+            });
+
+            const count = sbCookies.length;
+            const countEl = document.getElementById('cookieCount');
+            countEl.textContent = count;
+            countEl.className = 'status ' + (count > 0 ? 'bad' : 'good');
+
+            const listEl = document.getElementById('cookieList');
+            if (count === 0) {
+                listEl.innerHTML = '<p style="color: #059669;">✅ No Supabase cookies found. You\'re clean!</p>';
+            } else {
+                listEl.innerHTML = '<p style="color: #dc2626;">⚠️ Found ' + count + ' Supabase cookie(s):</p>';
+                sbCookies.forEach(cookie => {
+                    const div = document.createElement('div');
+                    div.className = 'cookie-item';
+                    div.textContent = cookie.substring(0, 100) + (cookie.length > 100 ? '...' : '');
+                    listEl.appendChild(div);
+                });
+            }
+        }
+
+        function clearSupabaseCookies() {
+            const cookies = document.cookie.split(';');
+            let cleared = 0;
+
+            cookies.forEach(cookie => {
+                const eqIndex = cookie.indexOf('=');
+                if (eqIndex === -1) return;
+                
+                const name = cookie.substring(0, eqIndex).trim();
+                if (name.startsWith('sb-')) {
+                    // Clear for current domain
+                    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                    
+                    // Clear for parent domain (.baena.ai)
+                    const parts = location.hostname.split('.');
+                    if (parts.length >= 2) {
+                        const parentDomain = '.' + parts.slice(-2).join('.');
+                        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + parentDomain;
+                    }
+                    cleared++;
+                }
+            });
+
+            const resultEl = document.getElementById('clearResult');
+            resultEl.innerHTML = '<p style="color: #059669; font-weight: bold;">✅ Cleared ' + cleared + ' cookie(s)!</p>' +
+                '<p>Wait 5-10 minutes, then try logging in again.</p>' +
+                '<p><a href="https://chat.baena.ai/login">Go to Login Page →</a></p>';
+
+            // Recheck cookies
+            setTimeout(checkCookies, 1000);
+        }
+
+        function testAuth() {
+            const resultEl = document.getElementById('authResult');
+            resultEl.innerHTML = '<p>🔄 Testing connection to Supabase...</p>';
+
+            // Try to load Supabase client
+            fetch('https://qecdwuwkxgwkpopmdewl.supabase.co/auth/v1/health', {
+                credentials: 'include'
+            })
+            .then(response => {
+                if (response.ok) {
+                    resultEl.innerHTML = '<p style="color: #059669;">✅ Supabase is reachable! Auth service is healthy.</p>';
+                } else {
+                    resultEl.innerHTML = '<p style="color: #dc2626;">⚠️ Got response code: ' + response.status + '</p>';
+                }
+            })
+            .catch(error => {
+                resultEl.innerHTML = '<p style="color: #dc2626;">❌ Error: ' + error.message + '</p>';
+            });
+        }
+
+        function copyScript() {
+            const script = document.getElementById('manualScript').textContent;
+            navigator.clipboard.writeText(script).then(() => {
+                alert('✅ Script copied to clipboard!\n\nNow:\n1. Open browser console (F12)\n2. Paste the script\n3. Press Enter');
+            }).catch(err => {
+                alert('❌ Failed to copy. Please select and copy manually.');
+            });
+        }
+
+        // Auto-check on load
+        checkCookies();
+    </script>
+</body>
+</html>
