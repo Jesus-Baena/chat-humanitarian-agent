@@ -9,19 +9,31 @@ You may encounter a rate limit error when trying to log in or sign up:
 
 ## Root Causes
 
-### 1. Refresh Token Loop (Most Common)
-The application continuously tries to refresh an invalid/expired token, triggering rate limits. This happens when:
-- Old or corrupted refresh tokens are stored in cookies
-- The token was revoked but the cookie wasn't cleared
-- Multiple tabs/windows are trying to refresh the same expired token
+### 1. Automatic Token Refresh Loop (FIXED - December 2025)
+**This was the primary cause of 429 errors.**
 
-**Symptoms:**
-- Rate limit errors appear even without manually logging in
-- Errors occur immediately on page load
-- Supabase logs show many `/token` requests with `refresh_token_not_found`
+The `@nuxtjs/supabase` module was configured to automatically refresh tokens on every page load. When a token was invalid/expired, it would attempt to refresh it repeatedly, causing hundreds of requests per second.
 
-### 2. Actual Login Attempts
-Too many manual login attempts in a short period (less common).
+**The Fix:**
+- Disabled `autoRefreshToken` in `nuxt.config.ts`
+- Implemented manual token refresh with rate limiting in `02.supabase-refresh-guard.client.ts`
+- Added immediate session validation on page load (before any refresh attempts)
+- Limited refresh attempts to max 1 per minute, only when user is logged in
+
+**Old behavior:**
+```
+Page load → Auto refresh attempt → Failed (invalid token) → Auto retry → Failed → Auto retry → ... (100+ times) → 429 Rate Limit
+```
+
+**New behavior:**
+```
+Page load → Check session validity → Clear if invalid (no refresh attempt) → User can sign in fresh
+OR
+Page load → Valid session → Manual refresh after 5 minutes if still active
+```
+
+### 2. Expired Refresh Tokens in Cookies (Secondary Issue)
+When tokens expire but cookies remain, the old system would continuously try to refresh them.
 
 ## Default Supabase Rate Limits
 
@@ -109,23 +121,34 @@ Consider implementing:
 
 ## Prevention Strategies
 
-### Automatic Protection (Already Implemented)
+### Automatic Protection (NOW FULLY IMPLEMENTED)
 
-This application now includes automatic refresh token loop detection:
+**Core Fix: Manual Token Refresh Control**
+- **File:** `/nuxt.config.ts`
+- Disabled automatic token refresh that was causing the loops
+- Tokens are only refreshed manually when needed (max once per minute)
 
-**File:** `/app/plugins/02.supabase-refresh-guard.client.ts`
+**Smart Session Management**
+- **File:** `/app/plugins/02.supabase-refresh-guard.client.ts`
+- Validates session immediately on page load (before any refresh attempts)
+- Clears invalid sessions instantly (no retry loops)
+- Only refreshes tokens when user is actually logged in
+- Periodic refresh every 5 minutes for active sessions (not on every page load)
 
-**What it does:**
-- Monitors failed token refresh attempts
-- Automatically clears invalid cookies after 3 failures in 10 seconds
-- Prevents infinite refresh loops that cause rate limiting
-
-**You'll see console warnings like:**
+**Console output you'll see:**
 ```
-[supabase-refresh-guard] Token refresh failed (1/3)
-[supabase-refresh-guard] Too many refresh failures. Clearing session to prevent rate limiting.
-[supabase-refresh-guard] Invalid session cleared. Please sign in again.
+✓ [supabase-refresh-guard] User signed in successfully
+✓ [supabase-refresh-guard] Token refreshed successfully
+⚠ [supabase-refresh-guard] Detected invalid session, clearing cookies
+ℹ [supabase-refresh-guard] Invalid auth session cleared. You can continue using anonymous chat or sign in again.
 ```
+
+**Benefits:**
+- ✅ Prevents refresh token loops entirely
+- ✅ No more 429 rate limit errors from automatic refresh
+- ✅ Invalid tokens are detected and cleared immediately
+- ✅ Rate limited to 1 refresh attempt per minute max
+- ✅ Anonymous chat continues to work even when auth cookies are cleared
 
 ### 1. User Education
 - Clear error messages (already implemented in this app)
