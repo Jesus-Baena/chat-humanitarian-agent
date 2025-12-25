@@ -4,14 +4,21 @@
 set -e
 
 # Load SSH configuration if available
+if [ -f ".env" ]; then
+    echo "📁 Loading SSH configuration from .env..."
+    source .env
+fi
+
 if [ -f ".env.ssh" ]; then
     echo "📁 Loading SSH configuration from .env.ssh..."
     source .env.ssh
 fi
 
 # Configuration - Update these values for your setup
-SWARM_HOST="${SWARM_HOST:-'100.119.42.25'}"
+SWARM_HOST="${SWARM_HOST:-100.120.229.13}"
 SWARM_USER="${SWARM_USER:-sysop}"
+SWARM_PORT="${SWARM_PORT:-22}"
+SSH_KEY="${SSH_KEY:-~/.ssh/id_rsa}"
 
 # Deployment configuration
 STACK_NAME="web"
@@ -44,7 +51,7 @@ if ! ssh -i "${SSH_KEY}" -p "${SWARM_PORT}" -o ConnectTimeout=10 -o BatchMode=ye
     echo -e "  - User: ${SWARM_USER}"
     echo ""
     echo -e "${YELLOW}🔧 To configure, set environment variables:${NC}"
-    echo -e "  export SWARM_HOST='100.119.42.25'"
+    echo -e "  export SWARM_HOST='100.120.229.13'"
     echo -e "  export SWARM_USER='sysop'"
     exit 1
 fi
@@ -52,8 +59,8 @@ fi
 echo -e "${GREEN}✅ SSH connection successful${NC}"
 
 # Upload docker-compose.yml to remote host
-echo -e "${BLUE}📤 Uploading docker-compose.yml...${NC}"
-scp -i "${SSH_KEY}" -P "${SWARM_PORT}" docker-compose.yml "${SWARM_USER}@${SWARM_HOST}:/tmp/docker-compose-${ROLLOUT_COUNTER}.yml"
+echo -e "${BLUE}📤 Uploading docker-compose.prod.yml...${NC}"
+scp -i "${SSH_KEY}" -P "${SWARM_PORT}" docker-compose.prod.yml "${SWARM_USER}@${SWARM_HOST}:/tmp/docker-compose-${ROLLOUT_COUNTER}.yml"
 
 # Execute remote deployment
 echo -e "${BLUE}🚀 Executing remote deployment...${NC}"
