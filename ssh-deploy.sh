@@ -10,10 +10,8 @@ if [ -f ".env.ssh" ]; then
 fi
 
 # Configuration - Update these values for your setup
-SWARM_HOST="${SWARM_HOST:-your-swarm-host.com}"
-SWARM_USER="${SWARM_USER:-root}"
-SWARM_PORT="${SWARM_PORT:-22}"
-SSH_KEY="${SSH_KEY:-~/.ssh/id_rsa}"
+SWARM_HOST="${SWARM_HOST:-'100.119.42.25'}"
+SWARM_USER="${SWARM_USER:-sysop}"
 
 # Deployment configuration
 STACK_NAME="web"
@@ -44,14 +42,10 @@ if ! ssh -i "${SSH_KEY}" -p "${SWARM_PORT}" -o ConnectTimeout=10 -o BatchMode=ye
     echo -e "${BLUE}💡 Please check:${NC}"
     echo -e "  - Host: ${SWARM_HOST}"
     echo -e "  - User: ${SWARM_USER}"
-    echo -e "  - Port: ${SWARM_PORT}"
-    echo -e "  - SSH Key: ${SSH_KEY}"
     echo ""
     echo -e "${YELLOW}🔧 To configure, set environment variables:${NC}"
-    echo -e "  export SWARM_HOST='your-actual-host.com'"
-    echo -e "  export SWARM_USER='your-username'"
-    echo -e "  export SWARM_PORT='22'"
-    echo -e "  export SSH_KEY='~/.ssh/your-key'"
+    echo -e "  export SWARM_HOST='100.119.42.25'"
+    echo -e "  export SWARM_USER='sysop'"
     exit 1
 fi
 
