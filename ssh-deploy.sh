@@ -68,7 +68,7 @@ ssh -i "${SSH_KEY}" -p "${SWARM_PORT}" "${SWARM_USER}@${SWARM_HOST}" << EOF
     set -e
     
     echo "🔍 Verifying Docker Swarm status..."
-    if ! docker node ls >/dev/null 2>&1; then
+    if ! sudo docker node ls >/dev/null 2>&1; then
         echo "❌ Error: Not a Docker Swarm manager node or Swarm not initialized"
         exit 1
     fi
@@ -86,16 +86,16 @@ ssh -i "${SSH_KEY}" -p "${SWARM_PORT}" "${SWARM_USER}@${SWARM_HOST}" << EOF
     echo "   Rollout Counter: \${ROLLOUT_COUNTER}"
     
     # Deploy the stack
-    if docker stack deploy -c /tmp/docker-compose-${ROLLOUT_COUNTER}.yml "${STACK_NAME}"; then
+    if sudo docker stack deploy -c /tmp/docker-compose-${ROLLOUT_COUNTER}.yml "${STACK_NAME}"; then
         echo "✅ Stack deployed successfully!"
         
         echo ""
         echo "📊 Current services:"
-        docker service ls
+        sudo docker service ls
         
         echo ""
         echo "🔍 Chat service status:"
-        docker service ps ${STACK_NAME}_chat --no-trunc | head -10
+        sudo docker service ps ${STACK_NAME}_chat --no-trunc | head -10
         
         # Clean up temporary file
         rm -f /tmp/docker-compose-${ROLLOUT_COUNTER}.yml

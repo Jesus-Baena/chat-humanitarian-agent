@@ -44,13 +44,13 @@ Or manually on the Swarm manager:
 
 ```bash
 # SSH into your Swarm manager
-ssh sysop@100.119.42.25
+ssh sysop@100.120.229.13
 
 # Pull latest image
-docker pull ghcr.io/jesus-baena/chat-humanitarian-agent:latest
+sudo docker pull ghcr.io/jesus-baena/chat-humanitarian-agent:latest
 
 # Update the service with rolling update
-docker service update --image ghcr.io/jesus-baena/chat-humanitarian-agent:latest --force web_chat
+sudo docker service update --image ghcr.io/jesus-baena/chat-humanitarian-agent:latest --force web_chat
 ```
 
 ## Post-Deployment Verification

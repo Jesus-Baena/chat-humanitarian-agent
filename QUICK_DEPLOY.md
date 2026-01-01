@@ -1,18 +1,22 @@
 # 🚀 Quick Deployment Reference
 
-## Production Deployment (On Swarm Manager)
+## Production Deployment
 
-### Normal Deployment
+### SSH Deployment (From Local Machine)
 ```bash
-./deploy.sh
+./ssh-deploy.sh
 ```
-This pulls the latest image and updates the service with all required environment variables.
+Connects to the Swarm manager (100.120.229.13), uploads the compose file, and deploys the stack.
 
-### Emergency Fix (If Flowise Fails)
+### Manual Deployment (On Swarm Manager)
 ```bash
-./emergency-deploy.sh
+# Pull latest image
+sudo docker pull ghcr.io/jesus-baena/chat-humanitarian-agent:latest
+
+# Deploy stack
+export ROLLOUT_VERSION=$(date +%s)
+sudo docker stack deploy -c docker-compose.prod.yml web
 ```
-Quickly adds missing Flowise environment variables without rebuilding.
 
 ## Key Environment Variables
 
@@ -30,9 +34,9 @@ All `NUXT_PUBLIC_*` variables must also be set as GitHub Secrets for the build t
 ## Troubleshooting
 
 ### Error: "No completion backend configured"
-**Cause**: Missing `NUXT_PUBLIC_FLOWISE_URL` in service environment
+**Cause**: Missing `NUXT_PUBLIC_FLOWISE_URL` in build
 
-**Fix**: Run `./emergency-deploy.sh`
+**Fix**: Verify GitHub Secrets are configured and rebuild via GitHub Actions
 
 ### Service Won't Start
 **Check logs**: `docker service logs web_chat --tail 50`
@@ -43,29 +47,28 @@ All `NUXT_PUBLIC_*` variables must also be set as GitHub Secrets for the build t
 
 ### Verify Deployment
 ```bash
-# Check service status
-docker service ps web_chat
+# From local machine
+ssh sysop@100.120.229.13 "sudo docker service ps web_chat"
+ssh sysop@100.120.229.13 "sudo docker service logs web_chat --tail 20"
 
-# Check environment variables
-docker service inspect web_chat --format '{{json .Spec.TaskTemplate.ContainerSpec.Env}}' | jq
-
-# View logs
-docker service logs web_chat --tail 20
+# Or on swarm manager directly
+sudo docker service ps web_chat
+sudo docker service logs web_chat --tail 20
 ```
 
 ## Manual Service Update
 
-If you need to update manually:
+If you need to force update the service:
 
 ```bash
-docker service update \
+sudo docker service update \
   --image ghcr.io/jesus-baena/chat-humanitarian-agent:latest \
-  --env-add NUXT_PUBLIC_FLOWISE_URL=https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3 \
-  --env-add NUXT_PUBLIC_FLOWISE_API_KEY=YOUR_KEY \
   --env-add ROLLOUT_VERSION=$(date +%s) \
   --force \
   web_chat
 ```
+
+**Note:** Flowise configuration is baked into the image at build time via GitHub Actions.
 
 ## Full Documentation
 

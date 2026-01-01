@@ -1,103 +1,78 @@
-# Authentication Investigation - Complete Documentation Index
+# Chat Humanitarian Agent - Documentation Index
 
-## 📋 Document Map
+## 🚀 Quick Start
 
-### Start Here (1-5 min read)
-```
-1. INVESTIGATION_COMPLETE.md          ← You are here
-   └─ Overview of findings
-   └─ Quick summary
-   └─ Links to detailed docs
-```
+- **[README.md](README.md)** - Project overview and setup
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Quick deployment reference (start here for deployments)
+- **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** - Common deployment commands
 
-### For Decision Makers (5 min read)
-```
-2. AUTHENTICATION_EXECUTIVE_SUMMARY.md
-   ├─ Overview of problems
-   ├─ Impact assessment
-   ├─ Risk analysis
-   ├─ Success criteria
-   └─ Timeline estimate
-```
+## 📚 Main Documentation
 
-### For Developers - Getting Started (15 min read)
-```
-3. AUTH_FIX_SUMMARY.md
-   ├─ Problem identified
-   ├─ Key differences from working app
-   ├─ 3-step fix overview
-   ├─ Implementation status
-   └─ Next action items
-```
+### Setup & Configuration
+- **[SECRETS_SETUP.md](SECRETS_SETUP.md)** - GitHub Secrets and environment variables setup
+- **[MCP_SETUP_GUIDE.md](MCP_SETUP_GUIDE.md)** - Model Context Protocol setup for development
 
-### For Developers - Understanding (30 min read)
-```
-4a. AUTH_INVESTIGATION_REPORT.md
-    ├─ Detailed analysis of each issue
-    ├─ Files affected
-    ├─ Root cause analysis
-    ├─ Testing checklist
-    └─ Common task examples
+### Deployment
+- **[docs/guides/production-deployment.md](docs/guides/production-deployment.md)** - Complete production deployment guide
+- **[DEPLOY_SUPABASE_SECRETS.md](DEPLOY_SUPABASE_SECRETS.md)** - Docker Swarm secrets management
+- **[portainer-redeploy-guide.md](portainer-redeploy-guide.md)** - Portainer-based deployment
 
-4b. AUTH_FLOW_COMPARISON.md
-    ├─ Side-by-side comparison
-    ├─ Code snippets comparing implementations
-    ├─ Visual flow diagrams
-    ├─ Error scenarios
-    └─ Verification checklist
-```
+### Authentication
+- **[AUTH_TESTING_GUIDE.md](AUTH_TESTING_GUIDE.md)** - Authentication testing procedures
+- **[AUTH_FLOW_COMPARISON.md](AUTH_FLOW_COMPARISON.md)** - Authentication flow documentation
+- **[AUTH_IMPLEMENTATION_GUIDE.md](AUTH_IMPLEMENTATION_GUIDE.md)** - Authentication implementation details
+- **[AUTHENTICATION_EXECUTIVE_SUMMARY.md](AUTHENTICATION_EXECUTIVE_SUMMARY.md)** - Authentication architecture overview
 
-### For Developers - Implementing (45 min read)
-```
-5a. AUTH_IMPLEMENTATION_GUIDE.md
-    ├─ Step-by-step instructions
-    ├─ Complete login.vue code
-    ├─ Complete signup.vue code
-    ├─ Auth callback fix
-    ├─ Configuration changes
-    ├─ Optional middleware
-    ├─ Environment setup
-    └─ Troubleshooting guide
+### Troubleshooting
+- **[docs/troubleshooting/](docs/troubleshooting/)** - Troubleshooting guides
+  - Rate limit errors
+  - Flowise cache issues
+  - Common deployment problems
 
-5b. QUICK_FIX_CHECKLIST.md
-    ├─ TL;DR overview
-    ├─ Files to create/modify
-    ├─ Testing after each change
-    ├─ Copy-paste guide
-    ├─ Verification checklist
-    ├─ Common issues & fixes
-    ├─ Rollback plan
-    └─ Next 30 minutes timeline
-```
+### Additional Guides
+- **[docs/guides/](docs/guides/)** - Additional documentation
+  - Authentication setup
+  - Caddy troubleshooting
+  - Debugging guide
+  - Flowise troubleshooting
+  - Future improvements
+  - Local testing
+  - Main app integration
+  - MCP setup
 
----
+## 🗂️ Archive
 
-## 📊 Document Overview
+Historical documentation and resolved issues are archived in:
+- **[docs/archive/](docs/archive/)** - Archived documentation and past fixes
 
-| Document | Length | Read Time | Audience | Format |
-|----------|--------|-----------|----------|--------|
-| `INVESTIGATION_COMPLETE.md` | 2 min | 1 min | Everyone | Summary |
-| `AUTHENTICATION_EXECUTIVE_SUMMARY.md` | 8 min | 5 min | Leadership | Analysis |
-| `AUTH_FIX_SUMMARY.md` | 5 min | 3 min | Developers | Reference |
-| `AUTH_INVESTIGATION_REPORT.md` | 15 min | 10 min | Tech Leads | Deep Dive |
-| `AUTH_FLOW_COMPARISON.md` | 20 min | 15 min | Developers | Comparison |
-| `AUTH_IMPLEMENTATION_GUIDE.md` | 30 min | 20 min | Developers | Tutorial |
-| `QUICK_FIX_CHECKLIST.md` | 15 min | 10 min | Developers | Checklist |
+## 🎯 By Use Case
 
-**Total**: ~95 minutes of comprehensive documentation with ready-to-use code
+### "I want to deploy the application"
+1. **[DEPLOYMENT.md](DEPLOYMENT.md)** - Quick deployment reference
+2. **[SECRETS_SETUP.md](SECRETS_SETUP.md)** - Ensure secrets are configured
+3. Run `./ssh-deploy.sh`
 
----
+### "I want to develop locally"
+1. **[README.md](README.md)** - Setup instructions
+2. **[MCP_SETUP_GUIDE.md](MCP_SETUP_GUIDE.md)** - Development tools
+3. `pnpm dev`
 
-## 🎯 Quick Navigation
+### "I have an authentication issue"
+1. **[AUTH_TESTING_GUIDE.md](AUTH_TESTING_GUIDE.md)** - Test authentication
+2. **[docs/troubleshooting/](docs/troubleshooting/)** - Check troubleshooting guides
+3. **[AUTH_IMPLEMENTATION_GUIDE.md](AUTH_IMPLEMENTATION_GUIDE.md)** - Implementation reference
 
-### "I want to understand the problem"
-1. Read: `INVESTIGATION_COMPLETE.md` (this file)
-2. Read: `AUTHENTICATION_EXECUTIVE_SUMMARY.md`
-3. Read: `AUTH_INVESTIGATION_REPORT.md`
+### "The deployment failed"
+1. **[DEPLOYMENT.md](DEPLOYMENT.md)** - Check rollback procedures
+2. **[docs/guides/production-deployment.md](docs/guides/production-deployment.md)** - Full troubleshooting guide
+3. Check service logs: `ssh sysop@100.120.229.13 "sudo docker service logs web_chat --tail 50"`
 
-### "I need to implement the fix"
-1. Read: `QUICK_FIX_CHECKLIST.md`
-2. Follow: `AUTH_IMPLEMENTATION_GUIDE.md`
+## 📝 Documentation Standards
+
+- **UPPERCASE.md** - Root-level quick reference and setup guides
+- **docs/guides/** - Comprehensive how-to guides
+- **docs/troubleshooting/** - Problem-solving documentation
+- **docs/archive/** - Historical documentation
 3. Refer: `AUTH_FLOW_COMPARISON.md` for understanding
 
 ### "I need to explain this to someone else"

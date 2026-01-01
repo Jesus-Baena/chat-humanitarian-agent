@@ -36,43 +36,35 @@ These are provided via Docker secrets:
 
 ## Deployment Methods
 
-### Method 1: Automated Deployment (Recommended)
+### Automated SSH Deployment (Recommended)
 
-Use the `deploy.sh` script on the swarm manager:
+From your local machine, use the SSH deployment script:
 
 ```bash
-# On the swarm manager node
-./deploy.sh
+./ssh-deploy.sh
 ```
 
 This script will:
-1. Pull the latest Docker image
-2. Update the service with all required environment variables
-3. Perform a rolling update
-4. Show deployment status
+1. Connect to the Docker Swarm manager (100.120.229.13)
+2. Upload the docker-compose.prod.yml file
+3. Deploy the stack with the latest image
+4. Show deployment status and logs
 
-### Method 2: Manual Deployment
+**Prerequisites:**
+- SSH access configured to the Swarm manager
+- `.env` file with `SWARM_HOST=100.120.229.13` and `SWARM_USER=sysop`
+
+### Manual Deployment (On Swarm Manager)
+
+If you're directly on the swarm manager node:
 
 ```bash
 # Pull the latest image
-docker pull ghcr.io/jesus-baena/chat-humanitarian-agent:latest
+sudo docker pull ghcr.io/jesus-baena/chat-humanitarian-agent:latest
 
-# Update the service
-docker service update \
-  --image ghcr.io/jesus-baena/chat-humanitarian-agent:latest \
-  --env-add NUXT_PUBLIC_FLOWISE_URL=https://flowise.baena.site/api/v1/prediction/40718af9-e9bd-47d9-a57b-009cb26f8fe3 \
-  --env-add NUXT_PUBLIC_FLOWISE_API_KEY=YOUR_API_KEY \
-  --env-add ROLLOUT_VERSION=$(date +%s) \
-  --force \
-  web_chat
-```
-
-### Method 3: Emergency Deployment
-
-If you need to quickly fix environment variables without rebuilding:
-
-```bash
-./emergency-deploy.sh
+# Update the stack
+export ROLLOUT_VERSION=$(date +%s)
+sudo docker stack deploy -c docker-compose.prod.yml web
 ```
 
 ## GitHub Actions Setup
@@ -122,12 +114,12 @@ After deployment, verify:
 
 1. **Service Status**:
    ```bash
-   docker service ps web_chat
+   sudo docker service ps web_chat
    ```
 
 2. **Logs**:
    ```bash
-   docker service logs web_chat --tail 50
+   sudo docker service logs web_chat --tail 50
    ```
 
 3. **Health Check**:
@@ -144,17 +136,15 @@ After deployment, verify:
 
 ### "No completion backend configured" Error
 
-This means `NUXT_PUBLIC_FLOWISE_URL` is missing. Fix:
+This means `NUXT_PUBLIC_FLOWISE_URL` is missing from the build. This should not occur if GitHub Secrets are properly configured.
 
-```bash
-./emergency-deploy.sh
-```
+**Fix:** Verify GitHub Secrets are set and trigger a new build via GitHub Actions.
 
 ### Service Won't Start
 
 Check logs:
 ```bash
-docker service logs web_chat --tail 100
+sudo docker service logs web_chat --tail 100
 ```
 
 Common issues:
@@ -166,24 +156,24 @@ Common issues:
 
 If deployment fails:
 ```bash
-docker service rollback web_chat
+sudo docker service rollback web_chat
 ```
 
 ## Monitoring
 
 ### View Service Logs
 ```bash
-docker service logs -f web_chat
+sudo docker service logs -f web_chat
 ```
 
 ### Check Service Status
 ```bash
-docker service ps web_chat --no-trunc
+sudo docker service ps web_chat --no-trunc
 ```
 
 ### Inspect Configuration
 ```bash
-docker service inspect web_chat
+sudo docker service inspect web_chat
 ```
 
 ## Best Practices
@@ -199,22 +189,22 @@ docker service inspect web_chat
 
 ### Update Single Environment Variable
 ```bash
-docker service update \
+sudo docker service update \
   --env-add VARIABLE_NAME=new_value \
   web_chat
 ```
 
 ### Increase Replicas
 ```bash
-docker service scale web_chat=3
+sudo docker service scale web_chat=3
 ```
 
 ### Force Restart
 ```bash
-docker service update --force web_chat
+sudo docker service update --force web_chat
 ```
 
 ### View Environment Variables
 ```bash
-docker service inspect web_chat --format '{{json .Spec.TaskTemplate.ContainerSpec.Env}}' | jq
+sudo docker service inspect web_chat --format '{{json .Spec.TaskTemplate.ContainerSpec.Env}}' | jq
 ```
