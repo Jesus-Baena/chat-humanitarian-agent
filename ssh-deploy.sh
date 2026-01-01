@@ -22,7 +22,7 @@ SSH_KEY="${SSH_KEY:-~/.ssh/id_rsa}"
 
 # Deployment configuration
 STACK_NAME="web"
-CHAT_VERSION="main-0ee48ea"  # Your latest commit with Tailwind fixes
+CHAT_VERSION="main-deda988"  # Your latest commit with Tailwind fixes
 PORTFOLIO_VERSION="latest"
 NGINX_VERSION="1.25-alpine"
 ROLLOUT_COUNTER=$(date +%s)
