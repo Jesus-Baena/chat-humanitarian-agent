@@ -78,6 +78,7 @@ ssh -i "${SSH_KEY}" -p "${SWARM_PORT}" "${SWARM_USER}@${SWARM_HOST}" << EOF
     export PORTFOLIO_VERSION="${PORTFOLIO_VERSION}"
     export NGINX_VERSION="${NGINX_VERSION}"
     export ROLLOUT_COUNTER="${ROLLOUT_COUNTER}"
+    export ROLLOUT_VERSION="${ROLLOUT_COUNTER}"
     
     echo "🚀 Deploying stack: ${STACK_NAME}"
     echo "   Chat Version: \${CHAT_VERSION}"
@@ -86,7 +87,7 @@ ssh -i "${SSH_KEY}" -p "${SWARM_PORT}" "${SWARM_USER}@${SWARM_HOST}" << EOF
     echo "   Rollout Counter: \${ROLLOUT_COUNTER}"
     
     # Deploy the stack
-    if sudo docker stack deploy -c /tmp/docker-compose-${ROLLOUT_COUNTER}.yml "${STACK_NAME}"; then
+    if sudo docker stack deploy --resolve-image always -c /tmp/docker-compose-${ROLLOUT_COUNTER}.yml "${STACK_NAME}"; then
         echo "✅ Stack deployed successfully!"
         
         echo ""
